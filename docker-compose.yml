@@ -1,0 +1,27 @@
+services:
+
+  mongodb:
+    image: mongo:7
+    container_name: carrito-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carrito-app
+    depends_on:
+      - mongodb
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      JWT_SECRET: secreto_de_prueba
+      MONGODB_URI: mongodb://mongodb:27017/carritoDB
+    command: npm test
+
+volumes:
+  mongo_data:

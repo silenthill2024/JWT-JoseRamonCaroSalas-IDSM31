@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>GameStore | Productos</title>
+
+        <link rel="stylesheet" href="/css/style.css" >
+
+        
+
+</head>
+
+
+<body>
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+
+    <header class="navbar">
+
+        <div class="navbar-left">
+
+            <div class="brand">
+
+                <span class="brand-icon">
+                    🎮
+                </span>
+
+                <span>
+                    GameStore
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="search-container">
+
+            <input
+                type="text"
+                id="buscador"
+                placeholder="Buscar videojuegos..."
+                onkeyup="buscarProductos()"
+            >
+
+            <button>
+                🔍
+            </button>
+
+        </div>
+
+
+        <div class="navbar-right">
+
+            <button
+                class="nav-button"
+                onclick="mostrarCarrito()">
+
+                🛒
+
+                <span id="contadorCarrito">
+                    0
+                </span>
+
+            </button>
+
+
+          <button
+    type="button"
+    class="btn-logout"
+    onclick="cerrarSesion()">
+    Cerrar sesión
+</button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================
+         CONTENIDO PRINCIPAL
+    ========================== -->
+
+    <main class="main-container">
+
+
+        <!-- HERO -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <span class="hero-tag">
+                    🎮 GAMING STORE
+                </span>
+
+                <h1>
+                    Encuentra tu próximo juego
+                </h1>
+
+                <p>
+                    Explora nuestra colección de videojuegos
+                    y agrega tus favoritos al carrito.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- CATEGORÍAS -->
+
+        <section class="categories">
+
+            <button class="category active">
+                Todos
+            </button>
+
+            <button class="category">
+                🎮 Acción
+            </button>
+
+            <button class="category">
+                🗺️ Aventura
+            </button>
+
+            <button class="category">
+                ⚔️ RPG
+            </button>
+
+            <button class="category">
+                🏎️ Carreras
+            </button>
+
+        </section>
+
+
+
+        <!-- =========================
+             PRODUCTOS
+        ========================== -->
+
+        <section class="products-section">
+
+            <div class="section-header">
+
+                <div>
+
+                    <h2>
+                        Videojuegos destacados
+                    </h2>
+
+                    <p>
+                        Los mejores juegos para ti
+                    </p>
+
+                </div>
+
+                <span class="product-count">
+                    4 productos
+                </span>
+
+            </div>
+
+
+            <div id="productos"
+                 class="productos-grid">
+
+
+                <!-- PRODUCTO 1 -->
+
+                <article class="producto">
+
+                    <div class="producto-image">
+
+                        <img
+                            src="/images/witcher3.jpg"
+                            alt="The Witcher 3"
+                        >
+
+                        <span class="badge">
+                            DESTACADO
+                        </span>
+
+                    </div>
+
+
+                    <div class="producto-info">
+
+                        <span class="categoria">
+                            RPG · Aventura
+                        </span>
+
+                        <h2>
+                            The Witcher 3
+                        </h2>
+
+                        <p class="descripcion">
+                            Explora un enorme mundo abierto
+                            lleno de aventuras y monstruos.
+                        </p>
+
+
+                        <div class="producto-bottom">
+
+                            <div class="precio">
+
+                                <span class="precio-label">
+                                    Precio
+                                </span>
+
+                                <strong>
+                                    $29.99
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                class="btn-cart"
+                                onclick="agregarProducto('6a831b7929d38406d7f3dd50')">
+
+                                🛒 Agregar
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- PRODUCTO 2 -->
+
+                <article class="producto">
+
+                    <div class="producto-image">
+
+                        <img
+                            src="/images/cyberpunk.jpg"
+                            alt="Cyberpunk 2077"
+                        >
+
+                        <span class="badge oferta">
+                            OFERTA
+                        </span>
+
+                    </div>
+
+
+                    <div class="producto-info">
+
+                        <span class="categoria">
+                            RPG · Acción
+                        </span>
+
+                        <h2>
+                            Cyberpunk 2077
+                        </h2>
+
+                        <p class="descripcion">
+                            Sumérgete en Night City y vive
+                            una aventura futurista.
+                        </p>
+
+
+                        <div class="producto-bottom">
+
+                            <div class="precio">
+
+                                <span class="precio-label">
+                                    Precio
+                                </span>
+
+                                <strong>
+                                    $39.99
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                class="btn-cart"
+                                onclick="agregarProducto('6a831b8729d38406d7f3dd52')">
+
+                                🛒 Agregar
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- PRODUCTO 3 -->
+
+                <article class="producto">
+
+                    <div class="producto-image">
+
+                        <img
+                            src="/images/rdr2.jpg"
+                            alt="Red Dead Redemption 2"
+                        >
+
+                    </div>
+
+
+                    <div class="producto-info">
+
+                        <span class="categoria">
+                            Acción · Aventura
+                        </span>
+
+                        <h2>
+                            Red Dead Redemption 2
+                        </h2>
+
+                        <p class="descripcion">
+                            Vive una aventura épica
+                            en el viejo oeste.
+                        </p>
+
+
+                        <div class="producto-bottom">
+
+                            <div class="precio">
+
+                                <span class="precio-label">
+                                    Precio
+                                </span>
+
+                                <strong>
+                                    $49.99
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                class="btn-cart"
+                                onclick="agregarProducto('6a831b9e29d38406d7f3dd54')">
+
+                                🛒 Agregar
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+
+                <!-- PRODUCTO 4 -->
+
+                <article class="producto">
+
+                    <div class="producto-image">
+
+                        <img
+                            src="/images/eldenring.jpg"
+                            alt="Elden Ring"
+                        >
+
+                        <span class="badge nuevo">
+                            NUEVO
+                        </span>
+
+                    </div>
+
+
+                    <div class="producto-info">
+
+                        <span class="categoria">
+                            RPG · Acción
+                        </span>
+
+                        <h2>
+                            Elden Ring
+                        </h2>
+
+                        <p class="descripcion">
+                            Descubre un enorme mundo
+                            lleno de desafíos.
+                        </p>
+
+
+                        <div class="producto-bottom">
+
+                            <div class="precio">
+
+                                <span class="precio-label">
+                                    Precio
+                                </span>
+
+                                <strong>
+                                    $59.99
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                class="btn-cart"
+                                onclick="agregarProducto('6a831ba929d38406d7f3dd56')">
+
+                                🛒 Agregar
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             CARRITO
+        ========================== -->
+
+        <aside class="carrito">
+
+            <div class="carrito-header">
+
+                <div>
+
+                    <h2>
+                        🛒 Mi carrito
+                    </h2>
+
+                    <span>
+                        Tus productos
+                    </span>
+
+                </div>
+
+
+                <button
+                    class="close-cart"
+                    onclick="cerrarCarrito()">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <div id="listaCarrito"
+                 class="lista-carrito">
+
+                <div class="carrito-vacio">
+
+                    <div class="empty-icon">
+                        🛒
+                    </div>
+
+                    <h3>
+                        Tu carrito está vacío
+                    </h3>
+
+                    <p>
+                        Agrega algunos videojuegos
+                        para comenzar.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="carrito-resumen">
+
+                <div class="resumen-linea">
+
+                    <span>
+                        Subtotal
+                    </span>
+
+                    <span>
+                        $<span id="subtotal">
+                            0.00
+                        </span>
+                    </span>
+
+                </div>
+
+
+                <div class="resumen-linea">
+
+                    <span>
+                        Envío
+                    </span>
+
+                    <span class="gratis">
+                        GRATIS
+                    </span>
+
+                </div>
+
+
+                <div class="resumen-total">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <strong>
+                        $<span id="total">
+                            0.00
+                        </span>
+                    </strong>
+
+                </div>
+
+
+                <button
+                    class="btn-checkout"
+                    onclick="finalizarCompra()">
+
+                    Finalizar compra
+                    <span>→</span>
+
+                </button>
+
+
+                <button
+                    class="btn-clear"
+                    onclick="vaciarCarrito()">
+
+                    Vaciar carrito
+
+                </button>
+
+            </div>
+
+        </aside>
+
+    </main>
+
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <div class="footer-content">
+
+            <div>
+
+                <h3>
+                    🎮 GameStore
+                </h3>
+
+                <p>
+                    Tu tienda de videojuegos.
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h4>
+                    Información
+                </h4>
+
+                <a href="#">
+                    Términos y condiciones
+                </a>
+
+                <a href="#">
+                    Privacidad
+                </a>
+
+            </div>
+
+
+            <div>
+
+                <h4>
+                    Soporte
+                </h4>
+
+                <a href="#">
+                    Centro de ayuda
+                </a>
+
+                <a href="#">
+                    Contacto
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            © 2026 GameStore. Todos los derechos reservados.
+
+        </div>
+
+    </footer>
+
+
+    <script src="/js/carrito.js"></script>
+
+</body>
+
+</html>

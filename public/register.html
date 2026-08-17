@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registro</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .registro-container {
+            width: 350px;
+            padding: 30px;
+
+            background: #222;
+            border-radius: 12px;
+
+            box-shadow: 0 0 20px rgba(0, 0, 0, .5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+
+            box-sizing: border-box;
+
+            border: none;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+
+            margin-top: 25px;
+            padding: 12px;
+
+            border: none;
+            border-radius: 6px;
+
+            cursor: pointer;
+        }
+
+        .btn-registro {
+            background: #28a745;
+            color: white;
+        }
+
+        .mensaje {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .login {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        a {
+            color: #4da6ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="registro-container">
+
+        <h1>Crear cuenta</h1>
+
+        <form id="registroForm">
+
+            <label for="nombre">
+                Nombre
+            </label>
+
+            <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                placeholder="Ingresa tu nombre"
+                required
+            >
+
+
+            <label for="email">
+                Correo electrónico
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="correo@ejemplo.com"
+                required
+            >
+
+
+            <label for="password">
+                Contraseña
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Contraseña"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="btn-registro"
+            >
+                Registrarse
+            </button>
+
+        </form>
+
+
+        <div
+            id="mensaje"
+            class="mensaje"
+        ></div>
+
+
+        <div class="login">
+
+            ¿Ya tienes cuenta?
+
+            <a href="/login.html">
+                Iniciar sesión
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const formulario =
+            document.getElementById(
+                'registroForm'
+            );
+
+        const mensaje =
+            document.getElementById(
+                'mensaje'
+            );
+
+
+        formulario.addEventListener(
+            'submit',
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const nombre =
+                    document.getElementById(
+                        'nombre'
+                    ).value.trim();
+
+                const email =
+                    document.getElementById(
+                        'email'
+                    ).value.trim();
+
+                const password =
+                    document.getElementById(
+                        'password'
+                    ).value;
+
+
+                try {
+
+                    const respuesta =
+                        await fetch(
+                            '/api/register',
+                            {
+                                method: 'POST',
+
+                                headers: {
+                                    'Content-Type':
+                                        'application/json'
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        nombre,
+                                        email,
+                                        password
+                                    })
+                            }
+                        );
+
+
+                    const datos =
+                        await respuesta.json();
+
+
+                    if (!respuesta.ok) {
+
+                        mensaje.textContent =
+                            datos.error ||
+                            'No se pudo registrar el usuario.';
+
+                        mensaje.style.color =
+                            'red';
+
+                        return;
+                    }
+
+
+                    mensaje.textContent =
+                        'Usuario registrado correctamente.';
+
+                    mensaje.style.color =
+                        'lightgreen';
+
+
+                    formulario.reset();
+
+
+                    setTimeout(() => {
+
+                        window.location.href =
+                            '/login.html';
+
+                    }, 1500);
+
+
+                } catch (error) {
+
+                    console.error(
+                        'Error:',
+                        error
+                    );
+
+                    mensaje.textContent =
+                        'No se pudo conectar con el servidor.';
+
+                    mensaje.style.color =
+                        'red';
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
