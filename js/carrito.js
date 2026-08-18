@@ -1,740 +1,318 @@
 // ==========================================
-// OBTENER TOKEN
+// CONFIGURACIÓN DE API Y TOKEN
 // ==========================================
+const API_URL = '/api/carrito';
 
 let token = localStorage.getItem('token');
 
-
-// ==========================================
-// OBTENER TOKEN DESDE OAUTH
-// ==========================================
-
-const parametros =
-    new URLSearchParams(window.location.search);
-
-const tokenOAuth =
-    parametros.get('token');
-
-
-// ==========================================
-// GUARDAR TOKEN DE OAUTH
-// ==========================================
+// Obtener token desde OAuth si viene en la URL
+const parametros = new URLSearchParams(window.location.search);
+const tokenOAuth = parametros.get('token');
 
 if (tokenOAuth) {
 
+    // Recibir JWT generado por el servidor después de Google OAuth
     token = tokenOAuth;
 
-    localStorage.setItem(
-        'token',
-        tokenOAuth
-    );
+    // Guardar el JWT para utilizarlo en las peticiones protegidas
+    localStorage.setItem('token', tokenOAuth);
 
-    // Limpiar el token de la URL
+    // Limpiar el JWT de la barra de direcciones
+    // sin recargar la página
     window.history.replaceState(
         {},
         document.title,
         '/carrito.html'
     );
-
 }
-
-
-// ==========================================
-// SI NO EXISTE TOKEN
-// ==========================================
-
+// Validar existencia del token
 if (!token) {
-
-    window.location.href =
-        '/login.html';
-
+    window.location.href = '/login.html';
 }
 
+// ==========================================
+// REFERENCIAS Y EVENTOS INICIALES
+// ==========================================
+const carritoPanel = document.querySelector('.carrito');
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarCarrito();
+});
 
 // ==========================================
-// REFERENCIA AL CARRITO
+// ABRIR Y CERRAR PANEL
 // ==========================================
-
-const carritoPanel =
-    document.querySelector('.carrito');
-
-
-// ==========================================
-// ABRIR CARRITO
-// ==========================================
-
 async function mostrarCarrito() {
-
-    // Mostrar el carrito flotante
     if (carritoPanel) {
-
         carritoPanel.classList.add('active');
-
     }
-
-    // Actualizar información
     await cargarCarrito();
-
 }
-
-
-// ==========================================
-// CERRAR CARRITO
-// ==========================================
 
 function cerrarCarrito() {
-
     if (carritoPanel) {
-
         carritoPanel.classList.remove('active');
-
     }
-
 }
-
 
 // ==========================================
 // CARGAR CARRITO DESDE EL SERVIDOR
 // ==========================================
-
 async function cargarCarrito() {
-
     try {
+        const respuesta = await fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-        const respuesta =
-            await fetch(
-                '/api/carrito',
-                {
-                    method: 'GET',
-
-                    headers: {
-
-                        'Authorization':
-                            `Bearer ${token}`,
-
-                        'Content-Type':
-                            'application/json'
-                    }
-                }
-            );
-
-
-        // ==========================================
-        // TOKEN INVÁLIDO O EXPIRADO
-        // ==========================================
-
+        // Token inválido o expirado
         if (respuesta.status === 401) {
-
             localStorage.removeItem('token');
-
-            window.location.href =
-                '/login.html';
-
+            window.location.href = '/login.html';
             return;
-
         }
 
-
-        const carrito =
-            await respuesta.json();
-
-
-        // ==========================================
-        // ERROR DEL SERVIDOR
-        // ==========================================
+        const carrito = await respuesta.json();
 
         if (!respuesta.ok) {
-
-            console.error(
-                'Error al cargar carrito:',
-                carrito
-            );
-
+            console.error('Error al cargar carrito:', carrito);
             return;
-
         }
 
-
-        // ==========================================
-        // MOSTRAR PRODUCTOS
-        // ==========================================
-
         mostrarProductosCarrito(carrito);
-
-
-        // ==========================================
-        // ACTUALIZAR CONTADOR
-        // ==========================================
-
         actualizarContador(carrito);
-
-
-        // ==========================================
-        // ACTUALIZAR TOTAL
-        // ==========================================
-
         actualizarTotales(carrito);
 
-
     } catch (error) {
-
-        console.error(
-            'Error al conectar con el servidor:',
-            error
-        );
-
+        console.error('Error al conectar con el servidor:', error);
     }
-
 }
 
-
 // ==========================================
-// MOSTRAR PRODUCTOS DEL CARRITO
+// MOSTRAR PRODUCTOS EN LA INTERFAZ
 // ==========================================
-
 function mostrarProductosCarrito(carrito) {
-
-    const lista =
-        document.getElementById(
-            'listaCarrito'
-        );
-
-
-    if (!lista) {
-
-        return;
-
-    }
-
+    const lista = document.getElementById('listaCarrito');
+    if (!lista) return;
 
     lista.innerHTML = '';
 
-
-    // ==========================================
-    // CARRITO VACÍO
-    // ==========================================
-
-    if (
-        !carrito.items ||
-        carrito.items.length === 0
-    ) {
-
+    if (!carrito.items || carrito.items.length === 0) {
         lista.innerHTML = `
-
             <div class="carrito-vacio">
-
-                <div class="empty-icon">
-                    🛒
-                </div>
-
-                <h3>
-                    Tu carrito está vacío
-                </h3>
-
-                <p>
-                    Agrega algunos videojuegos
-                    para comenzar.
-                </p>
-
+                <div class="empty-icon">🛒</div>
+                <h3>Tu carrito está vacío</h3>
+                <p>Agrega algunos videojuegos para comenzar.</p>
             </div>
-
         `;
-
         return;
-
     }
-
-
-    // ==========================================
-    // MOSTRAR CADA PRODUCTO
-    // ==========================================
 
     carrito.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'carrito-item';
 
-        const div =
-            document.createElement('div');
+        const precio = Number(item.precio || 0);
+        const cantidad = Number(item.cantidad || 0);
+        const subtotal = precio * cantidad;
 
-
-        div.className =
-            'carrito-item';
-
-
-        const precio =
-            Number(item.precio);
-
-
-        const cantidad =
-            Number(item.cantidad);
-
-
-        const subtotal =
-            precio * cantidad;
-
+        // Soporta varias estructuras de ID que pueda enviar el servidor
+        const idProducto = item.productId || item.producto?._id || item._id;
 
         div.innerHTML = `
-
-            <img
-                src="${item.imagen}"
-                width="80"
-                alt="${item.nombre}"
-            >
-
+            <img src="${item.imagen || '/images/default.jpg'}" width="80" alt="${item.nombre}">
             <div>
-
-                <h3>
-                    ${item.nombre}
-                </h3>
-
-                <p>
-                    Precio:
-                    $${precio.toFixed(2)}
-                </p>
-
-                <p>
-                    Cantidad:
-                    ${cantidad}
-                </p>
-
-                <p>
-                    Subtotal:
-                    $${subtotal.toFixed(2)}
-                </p>
-
-                <button
-                    onclick="eliminarProducto('${item.productId}')">
-
-                    Eliminar
-
-                </button>
-
+                <h3>${item.nombre}</h3>
+                <p>Precio: $${precio.toFixed(2)}</p>
+                <p>Cantidad: ${cantidad}</p>
+                <p>Subtotal: $${subtotal.toFixed(2)}</p>
+                <button onclick="eliminarProducto('${idProducto}')">Eliminar</button>
             </div>
-
         `;
 
-
         lista.appendChild(div);
-
     });
-
 }
 
-
 // ==========================================
-// ACTUALIZAR CONTADOR DEL CARRITO
+// ACTUALIZAR CONTADOR Y TOTALES
 // ==========================================
-
 function actualizarContador(carrito) {
-
-    const contador =
-        document.getElementById(
-            'contadorCarrito'
-        );
-
-
-    if (!contador) {
-
-        return;
-
-    }
-
+    const contador = document.getElementById('contadorCarrito');
+    if (!contador) return;
 
     let cantidadTotal = 0;
-
-
     if (carrito.items) {
-
         carrito.items.forEach(item => {
-
-            cantidadTotal +=
-                Number(item.cantidad);
-
+            cantidadTotal += Number(item.cantidad || 0);
         });
-
     }
 
-
-    contador.textContent =
-        cantidadTotal;
-
+    contador.textContent = cantidadTotal;
 }
-
-
-// ==========================================
-// ACTUALIZAR SUBTOTAL Y TOTAL
-// ==========================================
 
 function actualizarTotales(carrito) {
+    const total = Number(carrito.total || 0);
+    const totalElement = document.getElementById('total');
+    const subtotalElement = document.getElementById('subtotal');
 
-    const total =
-        Number(carrito.total || 0);
-
-
-    const totalElement =
-        document.getElementById(
-            'total'
-        );
-
-
-    const subtotalElement =
-        document.getElementById(
-            'subtotal'
-        );
-
-
-    if (totalElement) {
-
-        totalElement.textContent =
-            total.toFixed(2);
-
-    }
-
-
-    if (subtotalElement) {
-
-        subtotalElement.textContent =
-            total.toFixed(2);
-
-    }
-
+    if (totalElement) totalElement.textContent = total.toFixed(2);
+    if (subtotalElement) subtotalElement.textContent = total.toFixed(2);
 }
-
 
 // ==========================================
 // AGREGAR PRODUCTO
 // ==========================================
-
-async function agregarProducto(
-    productId
-) {
-
+async function agregarProducto(productId) {
     try {
-
-        // ==========================================
-        // VALIDAR PRODUCT ID
-        // ==========================================
-
         if (!productId) {
-
-            alert(
-                'No se encontró el ID del producto.'
-            );
-
+            alert('No se encontró el ID del producto.');
             return;
-
         }
 
+        const respuesta = await fetch(`${API_URL}/add`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                productId: productId,
+                cantidad: 1
+            })
+        });
 
-        const respuesta =
-            await fetch(
-                '/api/carrito/add',
-                {
+        const texto = await respuesta.text();
+        let datos;
 
-                    method: 'POST',
+        try {
+            datos = JSON.parse(texto);
+        } catch {
+            datos = { error: texto };
+        }
 
-                    headers: {
-
-                        'Authorization':
-                            `Bearer ${token}`,
-
-                        'Content-Type':
-                            'application/json'
-
-                    },
-
-                    body: JSON.stringify({
-
-                        productId:
-                            productId,
-
-                        cantidad: 1
-
-                    })
-
-                }
-            );
-
-
-        const datos =
-            await respuesta.json();
-
-
-        // ==========================================
-        // ERROR
-        // ==========================================
+        if (respuesta.status === 401) {
+            localStorage.removeItem('token');
+            alert('La sesión expiró. Inicia sesión nuevamente.');
+            window.location.href = '/login.html';
+            return;
+        }
 
         if (!respuesta.ok) {
-
-            alert(
-                datos.error ||
-                'No se pudo agregar el producto.'
-            );
-
+            alert(datos.error || 'No se pudo agregar el producto.');
             return;
-
         }
 
-
-        // ==========================================
-        // ACTUALIZAR CARRITO
-        // ==========================================
-
         await cargarCarrito();
-
-
-        // ==========================================
-        // MOSTRAR CARRITO
-        // ==========================================
 
         if (carritoPanel) {
-
-            carritoPanel.classList.add(
-                'active'
-            );
-
+            carritoPanel.classList.add('active');
         }
-
 
     } catch (error) {
-
-        console.error(
-            'Error al agregar producto:',
-            error
-        );
-
-        alert(
-            'No se pudo conectar con el servidor.'
-        );
-
+        console.error('Error al agregar producto:', error);
+        alert('No se pudo conectar con el servidor.');
     }
-
 }
 
-
 // ==========================================
-// ELIMINAR PRODUCTO
+// ELIMINAR PRODUCTO INDIVIDUAL
 // ==========================================
-
-async function eliminarProducto(
-    productId
-) {
-
+async function eliminarProducto(productId) {
     try {
+        if (!productId) return;
 
-        if (!productId) {
+        const respuesta = await fetch(`${API_URL}/remove/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
+        if (respuesta.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
             return;
-
         }
 
-
-        const respuesta =
-            await fetch(
-                `/api/carrito/remove/${productId}`,
-                {
-
-                    method: 'DELETE',
-
-                    headers: {
-
-                        'Authorization':
-                            `Bearer ${token}`, 
-
-                        'Content-Type':
-                            'application/json'
-
-                    }
-
-                }
-            );
-
-
-        const datos =
-            await respuesta.json();
-
+        const datos = await respuesta.json();
 
         if (!respuesta.ok) {
-
-            alert(
-                datos.error ||
-                'No se pudo eliminar el producto.'
-            );
-
+            alert(datos.error || 'No se pudo eliminar el producto.');
             return;
-
         }
 
-
-        // Actualizar carrito
         await cargarCarrito();
 
-
     } catch (error) {
-
-        console.error(
-            'Error al eliminar producto:',
-            error
-        );
-
+        console.error('Error al eliminar producto:', error);
     }
-
 }
 
-
 // ==========================================
-// VACIAR CARRITO
+// VACIAR CARRITO COMPLETO
 // ==========================================
-
 async function vaciarCarrito() {
-
     try {
+        const respuesta = await fetch(`${API_URL}/clear`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-        const respuesta =
-            await fetch(
-                '/api/carrito/clear',
-                {
-
-                    method: 'DELETE',
-
-                    headers: {
-
-                        'Authorization':
-                            `Bearer ${token}`,
-
-                        'Content-Type':
-                            'application/json'
-
-                    }
-
-                }
-            );
-
-
-        const datos =
-            await respuesta.json();
-
-
-        if (!respuesta.ok) {
-
-            alert(
-                datos.error ||
-                'No se pudo vaciar el carrito.'
-            );
-
+        if (respuesta.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
             return;
-
         }
 
+        const datos = await respuesta.json();
 
-        // Actualizar carrito
+        if (!respuesta.ok) {
+            alert(datos.error || 'No se pudo vaciar el carrito.');
+            return;
+        }
+
         await cargarCarrito();
 
-
     } catch (error) {
-
-        console.error(
-            'Error al vaciar carrito:',
-            error
-        );
-
+        console.error('Error al vaciar carrito:', error);
     }
-
 }
 
-
 // ==========================================
-// FINALIZAR COMPRA
+// UTILIDADES (COMPRA, SESIÓN, BUSCADOR)
 // ==========================================
-
 function finalizarCompra() {
-
-    alert(
-        'Compra finalizada correctamente'
-    );
-
+    alert('Compra finalizada correctamente');
 }
-
-
-// ==========================================
-// CERRAR SESIÓN
-// ==========================================
 
 function cerrarSesion() {
-
-    localStorage.removeItem(
-        'token'
-    );
-
-
-    window.location.href =
-        '/login.html';
-
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
 }
-
-
-// ==========================================
-// BUSCADOR DE PRODUCTOS
-// ==========================================
 
 function buscarProductos() {
+    const buscador = document.getElementById('buscador');
+    if (!buscador) return;
 
-    const buscador =
-        document.getElementById(
-            'buscador'
-        );
-
-
-    if (!buscador) {
-
-        return;
-
-    }
-
-
-    const texto =
-        buscador.value
-            .toLowerCase()
-            .trim();
-
-
-    const productos =
-        document.querySelectorAll(
-            '.producto'
-        );
-
+    const texto = buscador.value.toLowerCase().trim();
+    const productos = document.querySelectorAll('.producto');
 
     productos.forEach(producto => {
+        const nombre = producto.querySelector('h2')?.textContent.toLowerCase() || '';
+        const categoria = producto.querySelector('.categoria')?.textContent.toLowerCase() || '';
 
-        const nombre =
-            producto
-                .querySelector('h2')
-                ?.textContent
-                .toLowerCase() || '';
-
-
-        const categoria =
-            producto
-                .querySelector('.categoria')
-                ?.textContent
-                .toLowerCase() || '';
-
-
-        if (
-            nombre.includes(texto) ||
-            categoria.includes(texto)
-        ) {
-
-            producto.style.display =
-                '';
-
+        if (nombre.includes(texto) || categoria.includes(texto)) {
+            producto.style.display = '';
         } else {
-
-            producto.style.display =
-                'none';
-
+            producto.style.display = 'none';
         }
-
     });
-
 }
-
-

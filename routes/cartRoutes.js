@@ -9,7 +9,10 @@ const cartController =
     require('../controllers/cartController');
 
 
-// Obtener carrito
+// ==========================================
+// OBTENER CARRITO
+// GET /api/carrito
+// ==========================================
 
 router.get(
     '/',
@@ -18,16 +21,28 @@ router.get(
 );
 
 
-// Agregar producto
+// ==========================================
+// AGREGAR PRODUCTO
+// POST /api/carrito/add
+// ==========================================
 
 router.post(
     '/add',
     authMiddleware,
+    (req, res, next) => {
+        console.log('>>> POST /api/carrito/add DETECTADO');
+        console.log('Authorization:', req.headers.authorization);
+        console.log('Body:', req.body);
+        next();
+    },
     cartController.agregarProducto
 );
 
 
-// Actualizar cantidad
+// ==========================================
+// ACTUALIZAR CANTIDAD
+// PUT /api/carrito/update/:productId
+// ==========================================
 
 router.put(
     '/update/:productId',
@@ -36,7 +51,10 @@ router.put(
 );
 
 
-// Eliminar producto
+// ==========================================
+// ELIMINAR PRODUCTO
+// DELETE /api/carrito/remove/:productId
+// ==========================================
 
 router.delete(
     '/remove/:productId',
@@ -45,7 +63,10 @@ router.delete(
 );
 
 
-// Vaciar carrito
+// ==========================================
+// VACIAR CARRITO
+// DELETE /api/carrito/clear
+// ==========================================
 
 router.delete(
     '/clear',
@@ -53,5 +74,7 @@ router.delete(
     cartController.vaciarCarrito
 );
 
+
+module.exports = router;
 
 module.exports = router;

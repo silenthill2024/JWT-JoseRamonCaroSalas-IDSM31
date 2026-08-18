@@ -10,9 +10,11 @@
 
     <title>GameStore | Productos</title>
 
-        <link rel="stylesheet" href="/css/style.css" >
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
-        
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.css">
 
 </head>
 
@@ -51,7 +53,7 @@
                 onkeyup="buscarProductos()"
             >
 
-            <button>
+            <button type="button">
                 🔍
             </button>
 
@@ -61,6 +63,7 @@
         <div class="navbar-right">
 
             <button
+                type="button"
                 class="nav-button"
                 onclick="mostrarCarrito()">
 
@@ -73,12 +76,14 @@
             </button>
 
 
-          <button
-    type="button"
-    class="btn-logout"
-    onclick="cerrarSesion()">
-    Cerrar sesión
-</button>
+            <button
+                type="button"
+                class="btn-logout"
+                onclick="cerrarSesion()">
+
+                Cerrar sesión
+
+            </button>
 
         </div>
 
@@ -93,7 +98,9 @@
     <main class="main-container">
 
 
-        <!-- HERO -->
+        <!-- =========================
+             HERO
+        ========================== -->
 
         <section class="hero">
 
@@ -118,27 +125,29 @@
 
 
 
-        <!-- CATEGORÍAS -->
+        <!-- =========================
+             CATEGORÍAS
+        ========================== -->
 
         <section class="categories">
 
-            <button class="category active">
+            <button type="button" class="category active">
                 Todos
             </button>
 
-            <button class="category">
+            <button type="button" class="category">
                 🎮 Acción
             </button>
 
-            <button class="category">
+            <button type="button" class="category">
                 🗺️ Aventura
             </button>
 
-            <button class="category">
+            <button type="button" class="category">
                 ⚔️ RPG
             </button>
 
-            <button class="category">
+            <button type="button" class="category">
                 🏎️ Carreras
             </button>
 
@@ -173,11 +182,15 @@
             </div>
 
 
-            <div id="productos"
-                 class="productos-grid">
+            <div
+                id="productos"
+                class="productos-grid">
 
 
-                <!-- PRODUCTO 1 -->
+                <!-- =========================
+                     PRODUCTO 1
+                     THE WITCHER 3
+                ========================== -->
 
                 <article class="producto">
 
@@ -227,8 +240,8 @@
 
 
                             <button
-                                class="btn-cart"
-                                onclick="agregarProducto('6a831b7929d38406d7f3dd50')">
+                                type="button"
+                                onclick="agregarProducto('6a812eace0f3b42e4a5004b1')">
 
                                 🛒 Agregar
 
@@ -242,7 +255,10 @@
 
 
 
-                <!-- PRODUCTO 2 -->
+                <!-- =========================
+                     PRODUCTO 2
+                     CYBERPUNK 2077
+                ========================== -->
 
                 <article class="producto">
 
@@ -292,8 +308,8 @@
 
 
                             <button
-                                class="btn-cart"
-                                onclick="agregarProducto('6a831b8729d38406d7f3dd52')">
+                                type="button"
+                                onclick="agregarProducto('6a812efae0f3b42e4a5004b9')">
 
                                 🛒 Agregar
 
@@ -307,7 +323,10 @@
 
 
 
-                <!-- PRODUCTO 3 -->
+                <!-- =========================
+                     PRODUCTO 3
+                     RED DEAD REDEMPTION 2
+                ========================== -->
 
                 <article class="producto">
 
@@ -353,8 +372,8 @@
 
 
                             <button
-                                class="btn-cart"
-                                onclick="agregarProducto('6a831b9e29d38406d7f3dd54')">
+                                type="button"
+                                onclick="agregarProducto('6a812ecfe0f3b42e4a5004b7')">
 
                                 🛒 Agregar
 
@@ -368,7 +387,10 @@
 
 
 
-                <!-- PRODUCTO 4 -->
+                <!-- =========================
+                     PRODUCTO 4
+                     ELDEN RING
+                ========================== -->
 
                 <article class="producto">
 
@@ -418,8 +440,8 @@
 
 
                             <button
-                                class="btn-cart"
-                                onclick="agregarProducto('6a831ba929d38406d7f3dd56')">
+                                type="button"
+                                onclick="agregarProducto('6a812ec3e0f3b42e4a5004b5')">
 
                                 🛒 Agregar
 
@@ -460,6 +482,7 @@
 
 
                 <button
+                    type="button"
                     class="close-cart"
                     onclick="cerrarCarrito()">
 
@@ -470,8 +493,9 @@
             </div>
 
 
-            <div id="listaCarrito"
-                 class="lista-carrito">
+            <div
+                id="listaCarrito"
+                class="lista-carrito">
 
                 <div class="carrito-vacio">
 
@@ -502,9 +526,7 @@
                     </span>
 
                     <span>
-                        $<span id="subtotal">
-                            0.00
-                        </span>
+                        $<span id="subtotal">0.00</span>
                     </span>
 
                 </div>
@@ -530,15 +552,14 @@
                     </span>
 
                     <strong>
-                        $<span id="total">
-                            0.00
-                        </span>
+                        $<span id="total">0.00</span>
                     </strong>
 
                 </div>
 
 
                 <button
+                    type="button"
                     class="btn-checkout"
                     onclick="finalizarCompra()">
 
@@ -549,6 +570,7 @@
 
 
                 <button
+                    type="button"
                     class="btn-clear"
                     onclick="vaciarCarrito()">
 
@@ -629,6 +651,11 @@
 
     </footer>
 
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================== -->
 
     <script src="/js/carrito.js"></script>
 

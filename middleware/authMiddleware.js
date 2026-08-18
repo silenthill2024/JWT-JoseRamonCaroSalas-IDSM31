@@ -7,6 +7,9 @@ function authMiddleware(req, res, next) {
         const authHeader =
             req.headers.authorization;
 
+        console.log('>>> AUTH MIDDLEWARE');
+        console.log('Authorization recibido:', !!authHeader);
+
         if (!authHeader) {
             return res.status(401).json({
                 error: 'Token no proporcionado'
@@ -33,7 +36,12 @@ function authMiddleware(req, res, next) {
                 process.env.JWT_SECRET
             );
 
+        console.log('>>> JWT VALIDADO');
+        console.log('Usuario:', decoded);
+
         req.user = decoded;
+
+        console.log('>>> EJECUTANDO next()');
 
         next();
 
