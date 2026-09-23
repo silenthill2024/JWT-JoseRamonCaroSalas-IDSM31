@@ -198,3 +198,11 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
     });
 
 });
+
+beforeAll(async () => {
+    // Tu código de conexión o creación de datos de prueba
+}, 10000); // <-- 10 segundos
+
+afterAll(async () => {
+    // Tu código de limpieza
+}, 10000); // <-- 10 segundos
