@@ -8,13 +8,11 @@ require("dotenv").config();
 // ==========================================
 // GOOGLE OAUTH
 // ==========================================
-
 if (
     process.env.NODE_ENV !== 'test' &&
     process.env.GOOGLE_CLIENT_ID &&
     process.env.GOOGLE_CLIENT_SECRET
 ) {
-
     passport.use(
         new GoogleStrategy(
             {
@@ -65,7 +63,6 @@ if (
 
 }
 
-
 // ==========================================
 // SERIALIZAR USUARIO
 // ==========================================
@@ -76,24 +73,19 @@ passport.serializeUser((user, done) => {
 
 });
 
-
 // ==========================================
 // DESERIALIZAR USUARIO
 // ==========================================
-
 passport.deserializeUser(async (id, done) => {
 
     try {
-
         const user =
             await User.findById(id);
 
         done(null, user);
-
     } catch (error) {
 
         done(error, null);
 
     }
-
 });

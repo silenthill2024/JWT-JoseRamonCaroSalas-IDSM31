@@ -29,7 +29,6 @@ function authMiddleware(req, res, next) {
         }
 
         const token = partes[1];
-
         const decoded =
             jwt.verify(
                 token,
@@ -40,7 +39,6 @@ function authMiddleware(req, res, next) {
         console.log('Usuario:', decoded);
 
         req.user = decoded;
-
         console.log('>>> EJECUTANDO next()');
 
         next();
