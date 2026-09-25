@@ -21,7 +21,6 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
     const JWT_SECRET = process.env.JWT_SECRET || 'secreto_de_prueba';
 
     beforeAll(async () => {
-
         // Token válido
         validToken = jwt.sign(
             mockUser,
@@ -37,8 +36,11 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
         );
 
         // Asegurar conexión e insertar producto de prueba con la propiedad 'imagen' requerida
+        // Se agrega una URI de respaldo por si process.env.MONGODB_URI llega indefinido en Docker
+        const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://host.docker.internal:27017/carritoDB';
+        
         if (mongoose.connection.readyState === 0) {
-            await mongoose.connect(process.env.MONGODB_URI);
+            await mongoose.connect(MONGODB_URI);
         }
 
         const testProduct = await Product.create({
@@ -49,7 +51,7 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
         });
 
         productId = testProduct._id.toString();
-    });
+    }, 15000); // 15 segundos de timeout para evitar errores de conexión lenta
 
     afterAll(async () => {
         // Limpieza de datos y cierre de conexión para terminar el proceso limpiamente
@@ -57,7 +59,7 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
             await Product.findByIdAndDelete(productId);
         }
         await mongoose.connection.close();
-    });
+    }, 15000); // 15 segundos de timeout para el cierre
 
 
     // ==========================================
@@ -146,9 +148,6 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
                 cantidad: 1
             });
 
-        console.log('AGREGAR:', agregar.statusCode);
-        console.log('BODY AGREGAR:', agregar.body);
-
         // Después actualizar la cantidad a 0
         const response = await request(app)
             .put(`/api/carrito/update/${productId}`)
@@ -156,9 +155,6 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
             .send({
                 cantidad: 0
             });
-
-        console.log('ACTUALIZAR:', response.statusCode);
-        console.log('BODY ACTUALIZAR:', response.body);
 
         expect(response.statusCode).toBe(200);
     });
@@ -198,11 +194,3 @@ describe('Suite de Pruebas Automatizadas - Carrito de Compras', () => {
     });
 
 });
-
-beforeAll(async () => {
-    // Tu código de conexión o creación de datos de prueba
-}, 10000); // <-- 10 segundos
-
-afterAll(async () => {
-    // Tu código de limpieza
-}, 10000); // <-- 10 segundos
