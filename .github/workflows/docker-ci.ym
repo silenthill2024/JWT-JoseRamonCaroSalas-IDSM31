@@ -5,8 +5,10 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+
 jobs:
-  build:
+  build-test-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,6 +23,17 @@ jobs:
 
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v4
+
+      - name: Construir imagen para pruebas
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: carrito-app:test
+
+      - name: Ejecutar pruebas dentro del contenedor
+        run: |
+          docker run --rm carrito-app:test
 
       - name: Construir y publicar imagen
         uses: docker/build-push-action@v7
