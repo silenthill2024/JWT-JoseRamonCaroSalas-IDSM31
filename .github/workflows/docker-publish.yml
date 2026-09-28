@@ -1,34 +1,93 @@
-name: Docker
+name: Docker - Build, Test and Push
 
 on:
   push:
-    branches: ["main"]
-
+    branches:
+      - main
   pull_request:
-    branches: ["main"]
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ vars.DOCKER_USERNAME }}/carrito-app
 
 jobs:
-  build:
+  build-test-push:
+
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - name: Descargar repositorio
+
+      # 1. Descargar el repositorio
+      - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Iniciar sesión en Docker Hub
+      # 2. Configurar Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      # 3. Instalar dependencias
+      - name: Instalar dependencias
+        run: npm ci
+
+      # 4. Ejecutar pruebas
+      - name: Ejecutar pruebas unitarias
+        env:
+          MONGODB_URI: mongodb://localhost:27017/carritoDB
+          JWT_SECRET: tu_secreto_jwt
+          NODE_ENV: test
+        run: npm test -- --runInBand
+
+      # 5. Crear resumen de pruebas
+      - name: Generar resumen de pruebas
+        if: always()
+        run: |
+          echo "## 🧪 Resultado de pruebas" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Archivo evaluado" >> $GITHUB_STEP_SUMMARY
+          echo "- \`carrito.test.js\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Entorno" >> $GITHUB_STEP_SUMMARY
+          echo "- Node.js 20" >> $GITHUB_STEP_SUMMARY
+          echo "- MongoDB 7" >> $GITHUB_STEP_SUMMARY
+          echo "- Jest" >> $GITHUB_STEP_SUMMARY
+
+      # 6. Iniciar sesión en Docker Hub
+      - name: Login en Docker Hub
+        if: success()
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # 7. Configurar Docker Buildx
       - name: Configurar Docker Buildx
+        if: success()
         uses: docker/setup-buildx-action@v4
 
-      - name: Construir y publicar imagen
+      # 8. Construir y publicar imagen
+      - name: Construir y publicar imagen Docker
+        if: success()
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: silentguy20/carrito-app:latest
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:latest
           provenance: true
           sbom: true
