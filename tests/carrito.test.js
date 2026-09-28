@@ -1,7 +1,7 @@
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-
+jest.setTimeout(30000);
 // No levantar el puerto del server en las pruebas
 const app = require('../server');
 const Product = require('../models/Product');

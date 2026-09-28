@@ -10,6 +10,9 @@ COPY package*.json ./
 # Instalar dependencias
 RUN npm install
 
+# Copiar el archivo .env para que las variables de entorno estén disponibles
+COPY .env .env
+
 # Copiar el código fuente de la aplicación
 COPY . .
 
@@ -20,9 +23,3 @@ EXPOSE 3000
 
 # Comando predeterminado: Ejecuta las pruebas automatizadas y finaliza mostrando el reporte
 CMD ["npm", "test"]
-
-
-
-
-
-
