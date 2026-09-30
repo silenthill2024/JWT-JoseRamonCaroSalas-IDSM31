@@ -1,0 +1,29 @@
+name: Validar configuración Docker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  docker-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Validar con Docker Build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          call: check
+
+      - name: Validar con Docker Bake
+        uses: docker/bake-action@v7
+        with:
+          targets: validate-build

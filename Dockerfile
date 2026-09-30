@@ -23,3 +23,4 @@ EXPOSE 3000
 
 # Comando predeterminado: Ejecuta las pruebas automatizadas y finaliza mostrando el reporte
 CMD ["npm", "test"]
+
