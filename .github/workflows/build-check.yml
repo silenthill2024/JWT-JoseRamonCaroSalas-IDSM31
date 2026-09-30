@@ -1,3 +1,4 @@
+
 name: Validar configuración Docker
 
 on:
@@ -27,3 +28,29 @@ jobs:
         uses: docker/bake-action@v7
         with:
           targets: validate-build
+
+      - name: Generar resumen de Docker Bake
+        if: success()
+        run: |
+          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          # ✅ Validación de Docker Bake completada
+
+          ## Información de la ejecución
+
+          | Elemento |          Resultado            |
+          |----------|-------------------------------|
+          | Proyecto | JWT-JoseRamonCaroSalas-IDSM31 |
+          | Herramienta | Docker Bake                |
+          | Objetivo | `validate-build`              |
+          | Método   | `call = check`                |
+          | Estado   | ✅ Ejecutado correctamente    |
+          | Advertencias| ✅ Ninguna                 |
+
+          ## Resultado
+
+          Docker Bake ejecutó correctamente el objetivo `validate-build`.
+
+          Las comprobaciones de compilación finalizaron correctamente y no se generaron advertencias durante la validación.
+
+          La configuración del `Dockerfile` y de `docker-bake.hcl` fue procesada correctamente por Docker Buildx.
+          EOF
