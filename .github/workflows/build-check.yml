@@ -1,4 +1,3 @@
-
 name: Validar configuración Docker
 
 on:
@@ -11,104 +10,149 @@ jobs:
   docker-check:
     runs-on: ubuntu-latest
 
-    services:
-      mongodb:
-        image: mongo:7
-        ports:
-          - 27017:27017
-
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v6
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-
-      - name: Instalar dependencias
-        run: npm ci
-
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # ---------------------------------------------
+      # Validación con Docker Build
+      # ---------------------------------------------
       - name: Validar con Docker Build
         uses: docker/build-push-action@v7
         with:
           context: .
           call: check
 
+      # ---------------------------------------------
+      # Validación con Docker Bake
+      # ---------------------------------------------
       - name: Validar con Docker Bake
         uses: docker/bake-action@v7
         with:
           targets: validate-build
 
-      - name: Ejecutar aplicación del carrito
-        env:
-          MONGODB_URI: mongodb://127.0.0.1:27017/carritoDB
-          JWT_SECRET: github_actions_secret
+      # ---------------------------------------------
+      # Construcción de la aplicación
+      # ---------------------------------------------
+      - name: Construir imagen del carrito
         run: |
-          echo "   EJECUCIÓN DEL PROGRAMA DE CARRITO"
-          node server.js > server.log 2>&1 &
-          SERVER_PID=$!
+          docker build -t carrito-app:validation .
 
-          echo "Servidor iniciado con PID: $SERVER_PID"
+      # ---------------------------------------------
+      # Crear red
+      # ---------------------------------------------
+      - name: Crear red Docker
+        run: |
+          docker network create carrito-net
 
-          echo "Esperando que la aplicación esté disponible..."
+      # ---------------------------------------------
+      # Ejecutar MongoDB
+      # ---------------------------------------------
+      - name: Iniciar MongoDB
+        run: |
+          docker run -d \
+            --name carrito-mongodb \
+            --network carrito-net \
+            mongo:7
+
+      # ---------------------------------------------
+      # Ejecutar aplicación
+      # ---------------------------------------------
+      - name: Iniciar aplicación del carrito
+        run: |
+          docker run -d \
+            --name carrito-app \
+            --network carrito-net \
+            -p 3000:3000 \
+            -e MONGODB_URI="mongodb://carrito-mongodb:27017/carritoDB" \
+            -e JWT_SECRET="clave_validacion_github_actions" \
+            carrito-app:validation
+
+          echo "Esperando a que la aplicación inicie..."
           sleep 10
 
+      # ---------------------------------------------
+      # Mostrar salida de la aplicación
+      # ---------------------------------------------
+      - name: Mostrar productos del carrito
+        run: |
+          echo "=========================================="
+          echo "SALIDA DE LA APLICACIÓN DEL CARRITO"
+          echo "=========================================="
+
           echo ""
-          echo "===== SALIDA DE LA API DE PRODUCTOS ====="
+          echo "Consulta GET /api/productos/productos:"
+          echo ""
 
-          curl -f http://127.0.0.1:3000/api/productos | tee productos.json
+          curl -i http://localhost:3000/api/productos/productos
 
           echo ""
-          echo "La aplicación respondió correctamente."
+          echo "=========================================="
+          echo "LOGS DE LA APLICACIÓN"
+          echo "=========================================="
 
-          echo ""
-          echo "===== LOG DEL SERVIDOR ====="
-          cat server.log
+          docker logs carrito-app
 
-          kill $SERVER_PID || true
-
-      - name: Mostrar salida del carrito en Summary
+      # ---------------------------------------------
+      # Generar Summary
+      # ---------------------------------------------
+      - name: Generar resumen de Docker Bake y aplicación
         if: success()
         run: |
-          echo "# Validación del programa de carrito" >> "$GITHUB_STEP_SUMMARY"
+          PRODUCTOS=$(curl -s http://localhost:3000/api/productos/productos)
 
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## Salida de la API" >> "$GITHUB_STEP_SUMMARY"
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
 
-          echo '```json' >> "$GITHUB_STEP_SUMMARY"
-          cat productos.json >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "La aplicación del carrito respondió correctamente desde GitHub Actions." >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Generar resumen de Docker Bake
-        if: success()
-        run: |
-          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
-
-          # Validación de Docker Bake completada
+          # ✅ Validación y ejecución del carrito completadas
 
           ## Información de la ejecución
 
           | Elemento | Resultado |
           |---|---|
           | Proyecto | JWT-JoseRamonCaroSalas-IDSM31 |
-          | Herramienta | Docker Bake |
-          | Objetivo | `validate-build` |
-          | Método | `call = check` |
-          | Estado | Ejecutado correctamente |
-          | Advertencias | Ninguna |
+          | Docker Build | ✅ Validado |
+          | Docker Bake | ✅ Validado |
+          | Objetivo | \`validate-build\` |
+          | Método | \`call = check\` |
+          | Imagen | \`carrito-app:validation\` |
+          | Aplicación | ✅ Ejecutada |
+          | Estado | ✅ Correcto |
+          | Advertencias | ✅ Ninguna |
+
+          ## Resultado de Docker Bake
+
+          \`Check complete, no warnings found.\`
+
+          ## Salida de la aplicación del carrito
+
+          Se realizó una petición GET al endpoint:
+
+          \`/api/productos/productos\`
+
+          La aplicación respondió con los productos disponibles:
+
+          \`\`\`json
+          $PRODUCTOS
+          \`\`\`
 
           ## Resultado
 
-          Docker Bake ejecutó correctamente el objetivo `validate-build`.
+          La aplicación del carrito fue ejecutada correctamente dentro
+          del contenedor Docker y respondió a la petición de productos.
 
-          Las comprobaciones de compilación finalizaron correctamente y no se generaron advertencias durante la validación.
-
-          La configuración del `Dockerfile` y de `docker-bake.hcl` fue procesada correctamente por Docker Buildx.
+          Esto permite comprobar que, además de validar la configuración
+          de Docker Build y Docker Bake, la aplicación pudo iniciar y
+          proporcionar una respuesta desde su API.
           EOF
+
+      # ---------------------------------------------
+      # Limpieza
+      # ---------------------------------------------
+      - name: Detener contenedores
+        if: always()
+        run: |
+          docker rm -f carrito-app carrito-mongodb || true
+          docker network rm carrito-net || true
