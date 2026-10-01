@@ -61,26 +61,66 @@ jobs:
           echo "Colección: productos"
 
           echo ""
-          echo "Videojuego disponible:"
-          echo "Nombre: The Witcher 3"
-          echo "Precio: \$29.99"
-          echo "Stock: 10"
+          echo "Videojuegos disponibles:"
+          echo "1. The Witcher 3 - \$29.99"
+          echo "2. Red Dead Redemption 2 - \$59.99"
+          echo "3. Cyberpunk 2077 - \$49.99"
+          echo "4. Elden Ring - \$59.99"
 
-          echo ""
-          echo "Agregando videojuego al carrito..."
+          # Precios
+          WITCHER=29.99
+          RED_DEAD=59.99
+          CYBERPUNK=49.99
+          ELDEN_RING=59.99
 
-          NOMBRE="The Witcher 3"
-          PRECIO=29.99
+          # Cantidad de cada producto
           CANTIDAD=1
 
-          TOTAL=$(echo "$PRECIO * $CANTIDAD" | bc)
+          # Calcular total
+          TOTAL=$(echo "$WITCHER + $RED_DEAD + $CYBERPUNK + $ELDEN_RING" | bc)
 
           echo ""
-          echo "Producto agregado correctamente."
-          echo "Videojuego: $NOMBRE"
-          echo "Cantidad: $CANTIDAD"
-          echo "Precio: \$${PRECIO}"
-          echo "Total: \$${TOTAL}"
+          echo "=========================================="
+          echo "AGREGANDO PRODUCTOS AL CARRITO"
+          echo "=========================================="
+
+          echo ""
+          echo "Producto: The Witcher 3"
+          echo "Cantidad: 1"
+          echo "Precio: \$29.99"
+          echo "Agregado correctamente."
+
+          echo ""
+          echo "Producto: Red Dead Redemption 2"
+          echo "Cantidad: 1"
+          echo "Precio: \$59.99"
+          echo "Agregado correctamente."
+
+          echo ""
+          echo "Producto: Cyberpunk 2077"
+          echo "Cantidad: 1"
+          echo "Precio: \$49.99"
+          echo "Agregado correctamente."
+
+          echo ""
+          echo "Producto: Elden Ring"
+          echo "Cantidad: 1"
+          echo "Precio: \$59.99"
+          echo "Agregado correctamente."
+
+          echo ""
+          echo "=========================================="
+          echo "RESUMEN DEL CARRITO"
+          echo "=========================================="
+
+          echo "The Witcher 3: \$29.99"
+          echo "Red Dead Redemption 2: \$59.99"
+          echo "Cyberpunk 2077: \$49.99"
+          echo "Elden Ring: \$59.99"
+
+          echo ""
+          echo "Cantidad total de videojuegos: 4"
+          echo "Total del carrito: \$${TOTAL}"
 
           echo ""
           echo "=========================================="
@@ -109,35 +149,41 @@ jobs:
           | Objetivo | `validate-build` |
           | Base de datos | `carritoDB` |
           | Colección | `productos` |
-          | Videojuego | The Witcher 3 |
-          | Precio | $29.99 |
-          | Cantidad | 1 |
-          | Carrito | ✅ Producto agregado |
+
+          ## Videojuegos
+
+          | Videojuego | Precio | Cantidad |
+          |---|---:|---:|
+          | The Witcher 3 | $29.99 | 1 |
+          | Red Dead Redemption 2 | $59.99 | 1 |
+          | Cyberpunk 2077 | $49.99 | 1 |
+          | Elden Ring | $59.99 | 1 |
+
+          ## Total del carrito
+
+          **$199.96**
 
           ## Operación realizada
 
           Se realizó una prueba sencilla del carrito de videojuegos.
 
-          El producto utilizado fue:
+          Se agregaron cuatro videojuegos:
 
-          **The Witcher 3**
+          - **The Witcher 3** — $29.99
+          - **Red Dead Redemption 2** — $59.99
+          - **Cyberpunk 2077** — $49.99
+          - **Elden Ring** — $59.99
 
-          con un precio de:
-
-          **$29.99**
-
-          y una cantidad de:
-
-          **1**
+          La cantidad agregada fue de **1 unidad por videojuego**.
 
           El total de la operación fue:
 
-          **$29.99**
+          **$199.96**
 
           ## Resultado
 
           Docker Build y Docker Bake fueron validados correctamente.
 
-          También se comprobó una operación básica de agregar un videojuego al carrito.
+          También se comprobó una operación básica de agregar cuatro videojuegos al carrito.
 
           EOF
