@@ -11,9 +11,23 @@ jobs:
   docker-check:
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v6
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm ci
 
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -29,22 +43,66 @@ jobs:
         with:
           targets: validate-build
 
+      - name: Ejecutar aplicación del carrito
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/carritoDB
+          JWT_SECRET: github_actions_secret
+        run: |
+          echo "   EJECUCIÓN DEL PROGRAMA DE CARRITO"
+          node server.js > server.log 2>&1 &
+          SERVER_PID=$!
+
+          echo "Servidor iniciado con PID: $SERVER_PID"
+
+          echo "Esperando que la aplicación esté disponible..."
+          sleep 10
+
+          echo ""
+          echo "===== SALIDA DE LA API DE PRODUCTOS ====="
+
+          curl -f http://127.0.0.1:3000/api/productos | tee productos.json
+
+          echo ""
+          echo "La aplicación respondió correctamente."
+
+          echo ""
+          echo "===== LOG DEL SERVIDOR ====="
+          cat server.log
+
+          kill $SERVER_PID || true
+
+      - name: Mostrar salida del carrito en Summary
+        if: success()
+        run: |
+          echo "# Validación del programa de carrito" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Salida de la API" >> "$GITHUB_STEP_SUMMARY"
+
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat productos.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "La aplicación del carrito respondió correctamente desde GitHub Actions." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Generar resumen de Docker Bake
         if: success()
         run: |
           cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
-          # ✅ Validación de Docker Bake completada
+
+          # Validación de Docker Bake completada
 
           ## Información de la ejecución
 
-          | Elemento |          Resultado            |
-          |----------|-------------------------------|
+          | Elemento | Resultado |
+          |---|---|
           | Proyecto | JWT-JoseRamonCaroSalas-IDSM31 |
-          | Herramienta | Docker Bake                |
-          | Objetivo | `validate-build`              |
-          | Método   | `call = check`                |
-          | Estado   | ✅ Ejecutado correctamente    |
-          | Advertencias| ✅ Ninguna                 |
+          | Herramienta | Docker Bake |
+          | Objetivo | `validate-build` |
+          | Método | `call = check` |
+          | Estado | Ejecutado correctamente |
+          | Advertencias | Ninguna |
 
           ## Resultado
 
