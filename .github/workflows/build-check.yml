@@ -11,9 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ---------------------------------------------
+      # Descargar repositorio
+      # ---------------------------------------------
       - name: Descargar repositorio
         uses: actions/checkout@v6
 
+      # ---------------------------------------------
+      # Configurar Docker Buildx
+      # ---------------------------------------------
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -42,7 +48,7 @@ jobs:
           docker build -t carrito-app:validation .
 
       # ---------------------------------------------
-      # Crear red
+      # Crear red Docker
       # ---------------------------------------------
       - name: Crear red Docker
         run: |
@@ -57,6 +63,67 @@ jobs:
             --name carrito-mongodb \
             --network carrito-net \
             mongo:7
+
+      # ---------------------------------------------
+      # Esperar MongoDB
+      # ---------------------------------------------
+      - name: Esperar MongoDB
+        run: |
+          echo "Esperando a que MongoDB inicie..."
+
+          for i in {1..30}; do
+            if docker exec carrito-mongodb \
+              mongosh --quiet \
+              --eval "db.adminCommand('ping').ok" | grep -q "1"; then
+
+              echo "MongoDB está listo."
+              break
+            fi
+
+            echo "MongoDB todavía no está listo..."
+            sleep 2
+          done
+
+      # ---------------------------------------------
+      # Insertar videojuegos en carritoDB
+      # ---------------------------------------------
+      - name: Cargar productos en carritoDB
+        run: |
+          docker exec -i carrito-mongodb mongosh carritoDB <<'EOF'
+
+          db.productos.deleteMany({})
+
+          db.productos.insertMany([
+            {
+              nombre: "The Witcher 3",
+              precio: 39.99,
+              stock: 10,
+              imagen: "witcher3.jpg"
+            },
+            {
+              nombre: "Cyberpunk 2077",
+              precio: 49.99,
+              stock: 8,
+              imagen: "cyberpunk2077.jpg"
+            },
+            {
+              nombre: "Red Dead Redemption 2",
+              precio: 59.99,
+              stock: 12,
+              imagen: "rdr2.jpg"
+            },
+            {
+              nombre: "Elden Ring",
+              precio: 59.99,
+              stock: 15,
+              imagen: "eldenring.jpg"
+            }
+          ])
+
+          print("Productos insertados:")
+          printjson(db.productos.find().toArray())
+
+          EOF
 
       # ---------------------------------------------
       # Ejecutar aplicación
@@ -75,7 +142,7 @@ jobs:
           sleep 10
 
       # ---------------------------------------------
-      # Mostrar salida de la aplicación
+      # Mostrar productos
       # ---------------------------------------------
       - name: Mostrar productos del carrito
         run: |
@@ -87,7 +154,7 @@ jobs:
           echo "Consulta GET /api/productos/productos:"
           echo ""
 
-          curl -i http://localhost:3000/api/productos/productos
+          curl -f -i http://localhost:3000/api/productos/productos
 
           echo ""
           echo "=========================================="
@@ -113,26 +180,38 @@ jobs:
           | Elemento | Resultado |
           |---|---|
           | Proyecto | JWT-JoseRamonCaroSalas-IDSM31 |
+          | Base de datos | \`carritoDB\` |
+          | Colección | \`productos\` |
           | Docker Build | ✅ Validado |
           | Docker Bake | ✅ Validado |
           | Objetivo | \`validate-build\` |
           | Método | \`call = check\` |
           | Imagen | \`carrito-app:validation\` |
+          | MongoDB | ✅ Ejecutado |
+          | Productos | ✅ Cargados |
           | Aplicación | ✅ Ejecutada |
-          | Estado | ✅ Correcto |
-          | Advertencias | ✅ Ninguna |
+          | API | ✅ Respondió correctamente |
 
           ## Resultado de Docker Bake
 
-          \`Check complete, no warnings found.\`
+          La configuración de Docker Bake fue validada correctamente.
 
-          ## Salida de la aplicación del carrito
+          ## Productos de carritoDB
+
+          Se cargaron los videojuegos en la base de datos:
+
+          - The Witcher 3
+          - Cyberpunk 2077
+          - Red Dead Redemption 2
+          - Elden Ring
+
+          ## Salida de la aplicación
 
           Se realizó una petición GET al endpoint:
 
           \`/api/productos/productos\`
 
-          La aplicación respondió con los productos disponibles:
+          La aplicación respondió con:
 
           \`\`\`json
           $PRODUCTOS
@@ -141,11 +220,13 @@ jobs:
           ## Resultado
 
           La aplicación del carrito fue ejecutada correctamente dentro
-          del contenedor Docker y respondió a la petición de productos.
+          del contenedor Docker y logró conectarse a MongoDB mediante:
 
-          Esto permite comprobar que, además de validar la configuración
-          de Docker Build y Docker Bake, la aplicación pudo iniciar y
-          proporcionar una respuesta desde su API.
+          \`mongodb://carrito-mongodb:27017/carritoDB\`
+
+          También se comprobó que la API puede consultar los videojuegos
+          almacenados en la colección \`productos\`.
+
           EOF
 
       # ---------------------------------------------
