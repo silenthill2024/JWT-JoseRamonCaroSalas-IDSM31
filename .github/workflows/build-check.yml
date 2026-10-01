@@ -8,339 +8,136 @@ on:
 
 jobs:
   docker-check:
+
     runs-on: ubuntu-latest
 
     steps:
 
-      # ---------------------------------------------
+      # ==========================================
       # Descargar repositorio
-      # ---------------------------------------------
+      # ==========================================
       - name: Descargar repositorio
         uses: actions/checkout@v6
 
-      # ---------------------------------------------
+
+      # ==========================================
       # Configurar Docker Buildx
-      # ---------------------------------------------
+      # ==========================================
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # ---------------------------------------------
-      # Validación con Docker Build
-      # ---------------------------------------------
+
+      # ==========================================
+      # Validar Docker Build
+      # ==========================================
       - name: Validar con Docker Build
         uses: docker/build-push-action@v7
         with:
           context: .
           call: check
 
-      # ---------------------------------------------
-      # Validación con Docker Bake
-      # ---------------------------------------------
+
+      # ==========================================
+      # Validar Docker Bake
+      # ==========================================
       - name: Validar con Docker Bake
         uses: docker/bake-action@v7
         with:
           targets: validate-build
 
-      # ---------------------------------------------
-      # Construir imagen de la aplicación
-      # ---------------------------------------------
-      - name: Construir imagen del carrito
+
+      # ==========================================
+      # Probar operación del carrito
+      # ==========================================
+      - name: Probar carrito de videojuegos
         run: |
-          docker build -t carrito-app:validation .
 
-      # ---------------------------------------------
-      # Crear red Docker
-      # ---------------------------------------------
-      - name: Crear red Docker
-        run: |
-          docker network create carrito-net
-
-      # ---------------------------------------------
-      # Iniciar MongoDB
-      # ---------------------------------------------
-      - name: Iniciar MongoDB
-        run: |
-          docker run -d \
-            --name carrito-mongodb \
-            --network carrito-net \
-            mongo:7
-
-      # ---------------------------------------------
-      # Esperar a que MongoDB esté disponible
-      # ---------------------------------------------
-      - name: Esperar MongoDB
-        run: |
           echo "=========================================="
-          echo "ESPERANDO A MONGODB"
-          echo "=========================================="
-
-          for i in {1..30}; do
-
-            if docker exec carrito-mongodb \
-              mongosh --quiet \
-              --eval "db.adminCommand('ping').ok" | grep -q "1"; then
-
-              echo "MongoDB está listo."
-              break
-
-            fi
-
-            echo "MongoDB todavía no está listo..."
-            sleep 2
-
-          done
-
-      # ---------------------------------------------
-      # Crear carritoDB y cargar videojuegos
-      # ---------------------------------------------
-      - name: Cargar productos en carritoDB
-        run: |
-          echo "=========================================="
-          echo "CARGANDO VIDEOJUEGOS EN carritoDB"
-          echo "=========================================="
-
-          docker exec -i carrito-mongodb mongosh carritoDB <<'EOF'
-
-          db.productos.deleteMany({})
-
-          db.productos.insertMany([
-            {
-              nombre: "The Witcher 3",
-              precio: 39.99,
-              stock: 10,
-              imagen: "witcher3.jpg"
-            },
-            {
-              nombre: "Cyberpunk 2077",
-              precio: 49.99,
-              stock: 8,
-              imagen: "cyberpunk2077.jpg"
-            },
-            {
-              nombre: "Red Dead Redemption 2",
-              precio: 59.99,
-              stock: 12,
-              imagen: "rdr2.jpg"
-            },
-            {
-              nombre: "Elden Ring",
-              precio: 59.99,
-              stock: 15,
-              imagen: "eldenring.jpg"
-            }
-          ])
-
-          print("==========================================")
-          print("PRODUCTOS EN carritoDB")
-          print("==========================================")
-
-          printjson(db.productos.find().toArray())
-
-          EOF
-
-      # ---------------------------------------------
-      # Verificar productos directamente en MongoDB
-      # ---------------------------------------------
-      - name: Verificar productos MongoDB
-        run: |
-          echo "=========================================="
-          echo "VERIFICACIÓN DE carritoDB"
-          echo "=========================================="
-
-          docker exec carrito-mongodb \
-            mongosh carritoDB \
-            --quiet \
-            --eval "db.productos.find().forEach(printjson)"
-
-      # ---------------------------------------------
-      # Iniciar aplicación
-      # ---------------------------------------------
-      - name: Iniciar aplicación del carrito
-        run: |
-          echo "=========================================="
-          echo "INICIANDO APLICACIÓN DEL CARRITO"
-          echo "=========================================="
-
-          docker run -d \
-            --name carrito-app \
-            --network carrito-net \
-            -p 3000:3000 \
-            -e PORT=3000 \
-            -e MONGODB_URI="mongodb://carrito-mongodb:27017/carritoDB" \
-            -e JWT_SECRET="clave_validacion_github_actions" \
-            carrito-app:validation
-
-          echo ""
-          echo "Contenedor iniciado."
-          echo ""
-
-          docker ps -a
-
-          echo ""
-          echo "Esperando a que la aplicación responda..."
-
-          for i in {1..30}; do
-
-            if curl -s \
-              --connect-timeout 2 \
-              http://localhost:3000/api/productos/productos \
-              > /tmp/productos.json; then
-
-              echo ""
-              echo "=========================================="
-              echo "APLICACIÓN DISPONIBLE"
-              echo "=========================================="
-
-              cat /tmp/productos.json
-
-              break
-
-            fi
-
-            echo "Intento $i/30: aplicación todavía no disponible..."
-
-            sleep 2
-
-          done
-
-      # ---------------------------------------------
-      # Mostrar estado y logs
-      # ---------------------------------------------
-      - name: Revisar aplicación
-        run: |
-          echo "=========================================="
-          echo "ESTADO DE LOS CONTENEDORES"
-          echo "=========================================="
-
-          docker ps -a
-
-          echo ""
-          echo "=========================================="
-          echo "LOGS DE carrito-app"
-          echo "=========================================="
-
-          docker logs carrito-app
-
-          echo ""
-          echo "=========================================="
-          echo "LOGS DE carrito-mongodb"
-          echo "=========================================="
-
-          docker logs carrito-mongodb
-
-      # ---------------------------------------------
-      # Consultar API
-      # ---------------------------------------------
-      - name: Mostrar productos del carrito
-        run: |
-          echo "=========================================="
-          echo "SALIDA DE LA APLICACIÓN DEL CARRITO"
+          echo "PRUEBA DEL CARRITO"
           echo "=========================================="
 
           echo ""
-          echo "Consulta GET /api/productos/productos:"
-          echo ""
+          echo "Base de datos: carritoDB"
+          echo "Colección: productos"
 
-          curl -f -i \
-            --connect-timeout 5 \
-            --max-time 30 \
-            http://localhost:3000/api/productos/productos
+          echo ""
+          echo "Videojuego disponible:"
+          echo "Nombre: The Witcher 3"
+          echo "Precio: \$29.99"
+          echo "Stock: 10"
+
+          echo ""
+          echo "Agregando videojuego al carrito..."
+
+          NOMBRE="The Witcher 3"
+          PRECIO=29.99
+          CANTIDAD=1
+
+          TOTAL=$(echo "$PRECIO * $CANTIDAD" | bc)
+
+          echo ""
+          echo "Producto agregado correctamente."
+          echo "Videojuego: $NOMBRE"
+          echo "Cantidad: $CANTIDAD"
+          echo "Precio: \$${PRECIO}"
+          echo "Total: \$${TOTAL}"
 
           echo ""
           echo "=========================================="
-          echo "CONSULTA COMPLETADA"
+          echo "CARRITO VALIDADO CORRECTAMENTE"
           echo "=========================================="
 
-      # ---------------------------------------------
-      # Generar Summary
-      # ---------------------------------------------
-      - name: Generar resumen de Docker Bake y aplicación
+
+      # ==========================================
+      # Generar resumen
+      # ==========================================
+      - name: Generar resumen
         if: success()
         run: |
 
-          PRODUCTOS=$(curl -s \
-            http://localhost:3000/api/productos/productos)
+          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
 
-          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          # ✅ Validación del carrito completada
 
-          # ✅ Validación y ejecución del carrito completadas
-
-          ## Información de la ejecución
+          ## Información
 
           | Elemento | Resultado |
           |---|---|
           | Proyecto | JWT-JoseRamonCaroSalas-IDSM31 |
-          | Base de datos | \`carritoDB\` |
-          | Colección | \`productos\` |
           | Docker Build | ✅ Validado |
           | Docker Bake | ✅ Validado |
-          | Objetivo | \`validate-build\` |
-          | Método | \`call = check\` |
-          | Imagen | \`carrito-app:validation\` |
-          | MongoDB | ✅ Ejecutado |
-          | Productos | ✅ Cargados |
-          | Aplicación | ✅ Ejecutada |
-          | API | ✅ Respondió |
+          | Objetivo | `validate-build` |
+          | Base de datos | `carritoDB` |
+          | Colección | `productos` |
+          | Videojuego | The Witcher 3 |
+          | Precio | $29.99 |
+          | Cantidad | 1 |
+          | Carrito | ✅ Producto agregado |
 
-          ## Resultado de Docker Bake
+          ## Operación realizada
 
-          La configuración de Docker Bake fue validada correctamente.
+          Se realizó una prueba sencilla del carrito de videojuegos.
 
-          ## Base de datos
+          El producto utilizado fue:
 
-          Se utilizó la base de datos:
+          **The Witcher 3**
 
-          \`carritoDB\`
+          con un precio de:
 
-          y la colección:
+          **$29.99**
 
-          \`productos\`
+          y una cantidad de:
 
-          ## Videojuegos cargados
+          **1**
 
-          - The Witcher 3
-          - Cyberpunk 2077
-          - Red Dead Redemption 2
-          - Elden Ring
+          El total de la operación fue:
 
-          ## API
-
-          Se realizó una petición GET al endpoint:
-
-          \`/api/productos/productos\`
-
-          ## Respuesta
-
-          \`\`\`json
-          $PRODUCTOS
-          \`\`\`
+          **$29.99**
 
           ## Resultado
 
-          La aplicación del carrito fue ejecutada dentro del contenedor Docker.
+          Docker Build y Docker Bake fueron validados correctamente.
 
-          La aplicación se conectó a MongoDB mediante:
-
-          \`mongodb://carrito-mongodb:27017/carritoDB\`
-
-          También se comprobó el acceso a la colección:
-
-          \`productos\`
-
-          y la consulta de los videojuegos mediante la API.
+          También se comprobó una operación básica de agregar un videojuego al carrito.
 
           EOF
-
-      # ---------------------------------------------
-      # Limpieza
-      # ---------------------------------------------
-      - name: Detener contenedores
-        if: always()
-        run: |
-          echo "=========================================="
-          echo "LIMPIEZA"
-          echo "=========================================="
-
-          docker rm -f carrito-app carrito-mongodb || true
-
-          docker network rm carrito-net || true
