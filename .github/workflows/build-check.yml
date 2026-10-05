@@ -11,6 +11,16 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    env:
+      MONGODB_URI: mongodb://localhost:27017/carritoDB
+      JWT_SECRET: secreto_de_prueba
+
     steps:
 
       # ==========================================
@@ -35,6 +45,41 @@ jobs:
         with:
           context: .
           call: check
+
+
+      # ==========================================
+      # Construir imagen Docker
+      # ==========================================
+      - name: Construir imagen Docker
+        run: |
+          echo "=========================================="
+          echo "CONSTRUYENDO IMAGEN DOCKER"
+          echo "=========================================="
+
+          docker build \
+            -t carrito-app:build \
+            .
+
+          echo ""
+          echo "Imagen construida correctamente."
+          docker images carrito-app:build
+
+
+      # ==========================================
+      # Ejecutar imagen Docker Build
+      # ==========================================
+      - name: Ejecutar imagen de Docker Build
+        run: |
+
+          echo "=========================================="
+          echo "EJECUTANDO IMAGEN DOCKER BUILD"
+          echo "=========================================="
+
+          docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
+            -e MONGODB_URI=mongodb://host.docker.internal:27017/carritoDB \
+            -e JWT_SECRET=secreto_de_prueba \
+            carrito-app:build
 
 
       # ==========================================
@@ -145,6 +190,8 @@ jobs:
           |---|---|
           | Proyecto | JWT-JoseRamonCaroSalas-IDSM31 |
           | Docker Build | ✅ Validado |
+          | Imagen Docker | ✅ Construida |
+          | Ejecución de imagen | ✅ Correcta |
           | Docker Bake | ✅ Validado |
           | Objetivo | `validate-build` |
           | Base de datos | `carritoDB` |
@@ -184,6 +231,6 @@ jobs:
 
           Docker Build y Docker Bake fueron validados correctamente.
 
-          También se comprobó una operación básica de agregar cuatro videojuegos al carrito.
+          La imagen Docker también fue construida y ejecutada correctamente.
 
           EOF
